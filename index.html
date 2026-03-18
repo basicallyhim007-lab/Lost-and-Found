@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button, input {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        input {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 12px 15px;
+            min-width: 200px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .tab-btn {
+            padding: 10px 25px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+        }
+        
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+        }
+        
+        .item-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .item-card p {
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .badge.lost {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .badge.found {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .delete-btn {
+            background: #ff6b6b;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .delete-btn:hover {
+            background: #ee5a52;
+        }
+        
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .form-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .form-btn:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Lost & Found</h1>
+            <p>Help reunite lost items with their owners</p>
+        </header>
+        
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search items...">
+            <button onclick="clearSearch()">Clear Search</button>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="filterItems('all')">All Items</button>
+            <button class="tab-btn" onclick="filterItems('lost')">Lost Items</button>
+            <button class="tab-btn" onclick="filterItems('found')">Found Items</button>
+        </div>
+        
+        <div id="itemsContainer" class="items-grid"></div>
+        
+        <div class="form-section">
+            <h2 style="margin-bottom: 20px;">Report an Item</h2>
+            <form onsubmit="addItem(event)">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Item Type:</label>
+                        <input type="text" id="itemName" placeholder="e.g., Phone, Keys, Wallet" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category:</label>
+                        <select id="itemCategory" required>
+                            <option value="">Select category</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Jewelry">Jewelry</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Accessories">Accessories</option>
+                            <option value="Documents">Documents</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="itemDescription" placeholder="Describe the item in detail..." required></textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Location:</label>
+                        <input type="text" id="itemLocation" placeholder="Where was it lost/found?" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date:</label>
+                        <input type="date" id="itemDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Contact Email:</label>
+                    <input type="email" id="itemEmail" placeholder="your@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select id="itemStatus" required>
+                        <option value="lost">Lost Item</option>
+                        <option value="found">Found Item</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="form-btn">Report Item</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api/items';
+        let items = [];
+        let currentFilter = 'all';
+        let searchTerm = '';
+        
+        // Fetch all items from API
+        async function fetchItems() {
+            try {
+                const response = await fetch(API_URL);
+                items = await response.json();
+                renderItems();
+            } catch (err) {
+                console.error('Error fetching items:', err);
+                alert('Error loading items. Make sure the backend server is running.');
+            }
+        }
+        
+        async function addItem(event) {
+            event.preventDefault();
+            
+            const newItem = {
+                name: document.getElementById('itemName').value,
+                category: document.getElementById('itemCategory').value,
+                description: document.getElementById('itemDescription').value,
+                location: document.getElementById('itemLocation').value,
+                date: document.getElementById('itemDate').value,
+                email: document.getElementById('itemEmail').value,
+                status: document.getElementById('itemStatus').value
+            };
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newItem)
+                });
+                
+                if (response.ok) {
+                    event.target.reset();
+                    await fetchItems();
+                    alert('Item reported successfully!');
+                } else {
+                    alert('Error reporting item');
+                }
+            } catch (err) {
+                console.error('Error adding item:', err);
+                alert('Error reporting item');
+            }
+        }
+        
+        async function deleteItem(id) {
+            if (!confirm('Are you sure you want to delete this item?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    await fetchItems();
+                } else {
+                    alert('Error deleting item');
+                }
+            } catch (err) {
+                console.error('Error deleting item:', err);
+                alert('Error deleting item');
+            }
+        }
+        
+        function filterItems(category) {
+            currentFilter = category;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderItems();
+        }
+        
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            
+            let filtered = items.filter(item => {
+                const matchesFilter = currentFilter === 'all' || item.status === currentFilter;
+                const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
+                                    item.category.toLowerCase().includes(searchTerm) ||
+                                    item.description.toLowerCase().includes(searchTerm);
+                return matchesFilter && matchesSearch;
+            });
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">No items found. Try different search terms or filters.</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(item => `
+                <div class="item-card">
+                    <span class="badge ${item.status}">${item.status.toUpperCase()}</span>
+                    <h3>${item.name}</h3>
+                    <p><strong>Category:</strong> ${item.category}</p>
+                    <p><strong>Description:</strong> ${item.description}</p>
+                    <p><strong>Location:</strong> ${item.location}</p>
+                    <p><strong>Date:</strong> ${new Date(item.date).toLocaleDateString()}</p>
+                    <p><strong>Contact:</strong> ${item.email}</p>
+                    <button class="delete-btn" onclick="deleteItem('${item._id}')">Delete</button>
+                </div>
+            `).join('');
+        }
+        
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            searchTerm = '';
+            renderItems();
+        }
+        
+        document.getElementById('searchInput')?.addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase();
+            renderItems();
+        });
+        
+        // Load items on page load
+        fetchItems();
+    </script>
+</body>
+</html>
